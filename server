@@ -1,0 +1,73 @@
+import socket
+import argparse
+
+class Server():
+    def __init__(self, host,port:int) -> None:
+        self.host = host
+        self.port = port
+    def _msg(self, text: str):
+        print(text)
+
+    def start_server(self):
+        sock = self._create_server_sock(host, port)
+        #create new socket
+        self._msg(f"Created server sock on {host}:{port}")
+        self._msg(f'Sock is {sock}')
+        while True:
+            self._accept_and_process_cli(sock)
+
+    def _accept_and_process_cli(self, sock: socket.socket):
+        #Accept new client connect
+        #cli_sock - new client socket
+        #cli_addr - client addr
+        self._msg('Accepting new client connection ...')
+        cli_sock, cli_addr = sock.accept()
+        self._msg(f"Accepted client: {cli_addr}")
+        #work at new client connection
+        self._msg(cli_sock)
+        self._cli_process(cli_sock)
+
+    def _cli_process_data(self, data: bytes):
+        data_str = data.decode('ascii')
+        self._msg(f"Received data: `{data_str}`")
+
+
+    def _cli_process(self, cli_sock: socket.socket):
+        #data is bytes
+        data = cli_sock.recv(600000)
+        # max len bytes
+        self._msg('Data len is '+ str(data.decode('ascii').__len__()))
+        # len at int
+        if data.decode('ascii').__len__() > 4096:
+            # if size date more then 4096 bytes
+            self._msg('Incorrect data size')
+            return
+        elif data.decode('ascii').__len__() == 0: 
+            # if data size 0 bytes
+            self._msg('Data size is empty')
+            return
+        else:
+            self._cli_process_data(data)
+        
+
+    def _create_server_sock(self, host,port):
+        #create sock for server
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # Binding created socket in addr (host, port)
+        addr = (host,port)
+        sock.bind(addr)
+        # Listening on bound sock
+        sock.listen()
+        return sock
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-host', required= True)
+    parser.add_argument('-port', required= True)
+    args = parser.parse_args()
+    host =args.host
+    port =args.port
+    print(type(host), host)
+    print(type(port), port)
+    work_name = Server(host, port)
+    work_name.start_server()
