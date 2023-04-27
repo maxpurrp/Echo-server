@@ -9,9 +9,9 @@ class Server():
         print(text)
 
     def start_server(self):
-        sock = self._create_server_sock(host, port)
+        sock = self._create_server_sock(self.host, self.port)
         #create new socket
-        self._msg(f"Created server sock on {host}:{port}")
+        self._msg(f"Created server sock on {self.host}:{self.port}")
         self._msg(f'Sock is {sock}')
         while True:
             self._accept_and_process_cli(sock)
@@ -29,25 +29,24 @@ class Server():
 
     def _cli_process_data(self, data: bytes):
         data_str = data.decode('ascii')
-        self._msg(f"Received data: `{data_str}`")
+        return data_str
 
 
     def _cli_process(self, cli_sock: socket.socket):
         #data is bytes
-        data = cli_sock.recv(600000)
-        # max len bytes
-        self._msg('Data len is '+ str(data.decode('ascii').__len__()))
-        # len at int
-        if data.decode('ascii').__len__() > 4096:
-            # if size date more then 4096 bytes
-            self._msg('Incorrect data size')
-            return
-        elif data.decode('ascii').__len__() == 0: 
-            # if data size 0 bytes
-            self._msg('Data size is empty')
-            return
-        else:
-            self._cli_process_data(data)
+        ign = ''
+        while True:
+            data = cli_sock.recv(4096)
+            if not data :
+                break
+            res = self._cli_process_data(data)
+            if res:
+                ign += res
+            else:
+                break
+        self._msg(f"Received data: `{ign}`")
+
+            
         
 
     def _create_server_sock(self, host,port):
@@ -60,7 +59,7 @@ class Server():
         sock.listen()
         return sock
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-host', required= True)
     parser.add_argument('-port', required= True)
@@ -69,5 +68,8 @@ if __name__ == '__main__':
     port =args.port
     print(type(host), host)
     print(type(port), port)
-    work_name = Server(host, port)
+    work_name = Server(host, int(port))
     work_name.start_server()
+if __name__ == '__main__':
+    main()
+    
