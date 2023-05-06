@@ -1,59 +1,50 @@
 import socket
 import argparse
 
+def msg(text : str):
+    print(text)
+
 class Server():
-    def __init__(self, host,port:int) -> None:
+    def __init__(self, host : str,port : int) -> None:
         self.host = host
         self.port = port
-    def _msg(self, text: str):
-        print(text)
 
     def start_server(self):
-        sock = self._create_server_sock(self.host, self.port)
+        sock = self._create_server_sock()
         #create new socket
-        self._msg(f"Created server sock on {self.host}:{self.port}")
-        self._msg(f'Sock is {sock}')
+        msg(f"Created server sock on {self.host}:{self.port}")
+        msg(f'Sock is {sock}')
         while True:
             self._accept_and_process_cli(sock)
 
-    def _accept_and_process_cli(self, sock: socket.socket):
+    def _accept_and_process_cli(self, sock : socket.socket):
         #Accept new client connect
         #cli_sock - new client socket
         #cli_addr - client addr
-        self._msg('Accepting new client connection ...')
+        msg('Accepting new client connection ...')
         cli_sock, cli_addr = sock.accept()
-        self._msg(f"Accepted client: {cli_addr}")
+        msg(f"Accepted client: {cli_addr}")
         #work at new client connection
-        self._msg(cli_sock)
+        msg(cli_sock)
         self._cli_process(cli_sock)
 
-    def _cli_process_data(self, data: bytes):
+    def _cli_convert_bytes(self, data : bytes):
         data_str = data.decode('ascii')
         return data_str
 
-
-    def _cli_process(self, cli_sock: socket.socket):
-        #data is bytes
-        ign = ''
+    def _cli_process(self, cli_sock : socket.socket):
         while True:
             data = cli_sock.recv(4096)
             if not data :
                 break
-            res = self._cli_process_data(data)
-            if res:
-                ign += res
             else:
-                break
-        self._msg(f"Received data: `{ign}`")
+                msg(self._cli_convert_bytes(data))
 
-            
-        
-
-    def _create_server_sock(self, host,port):
+    def _create_server_sock(self):
         #create sock for server
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # Binding created socket in addr (host, port)
-        addr = (host,port)
+        addr = (self.host,self.port)
         sock.bind(addr)
         # Listening on bound sock
         sock.listen()
@@ -62,14 +53,11 @@ class Server():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-host', required= True)
-    parser.add_argument('-port', required= True)
+    parser.add_argument('-port', required= True, type=int)
     args = parser.parse_args()
-    host =args.host
-    port =args.port
-    print(type(host), host)
-    print(type(port), port)
-    work_name = Server(host, int(port))
-    work_name.start_server()
+    host = args.host
+    port = args.port
+    serv = Server(host, port)
+    serv.start_server()
 if __name__ == '__main__':
     main()
-    
